@@ -1,0 +1,36 @@
+"0","library(caret)"
+"2","Loading required package: lattice
+"
+"2","Loading required package: ggplot2
+"
+"0","library(rpart)"
+"0","library(rpart.plot)"
+"0","library(randomForest) "
+"2","randomForest 4.6-12
+"
+"2","Type rfNews() to see new features/changes/bug fixes.
+"
+"2","
+Attaching package: ‘randomForest’
+
+"
+"2","The following object is masked from ‘package:ggplot2’:
+
+    margin
+
+"
+"0","library(corrplot)"
+"0","library(forestFloor)"
+"0","trainUrl <-""https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"""
+"0","testUrl <- ""https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"""
+"0","trainFile <- ""./data/pml-training.csv"""
+"0","testFile  <- ""./data/pml-testing.csv"""
+"0","if (!file.exists(""./data"")) {"
+"0","  dir.create(""./data"")"
+"0","}"
+"0","if (!file.exists(trainFile)) {"
+"0","download.file(trainUrl, destfile=trainFile, method=""libcurl"") "
+"0","}"
+"0","if (!file.exists(testFile)) {"
+"0","download.file(testUrl, destfile=testFile, method=""libcurl"") "
+"0","}"

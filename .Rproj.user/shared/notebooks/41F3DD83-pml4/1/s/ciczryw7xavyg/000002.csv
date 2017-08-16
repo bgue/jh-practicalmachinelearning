@@ -1,0 +1,8 @@
+"0","classe <- trainRaw$classe"
+"0","trainRemove <- grepl(""^X|timestamp|window"", names(trainRaw))"
+"0","trainRaw <- trainRaw[, !trainRemove]"
+"0","trainCleaned <- trainRaw[, sapply(trainRaw, is.numeric)]"
+"0","trainCleaned$classe <- classe"
+"0","testRemove <- grepl(""^X|timestamp|window"", names(testRaw))"
+"0","testRaw <- testRaw[, !testRemove]"
+"0","testCleaned <- testRaw[, sapply(testRaw, is.numeric)]"

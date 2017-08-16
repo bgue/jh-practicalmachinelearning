@@ -1,0 +1,2 @@
+"0","trainRaw <- trainRaw[, colSums(is.na(trainRaw)) == 0] "
+"0","testRaw <- testRaw[, colSums(is.na(testRaw)) == 0] "

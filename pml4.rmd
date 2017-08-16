@@ -1,0 +1,124 @@
+---
+title: PML Project Report
+author: "by Brian Gue"
+output:
+  html_document:
+    fig_height: 24
+    fig_width: 24
+---
+
+## Introduction  
+From the assignment:
+"Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it.  
+
+In this project, we will use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants to predict the manner in which they did the exercise."
+
+My approach to the assignment follows the general machine-learning steps covered in lessons, namely:
+ 1. Data preprocessing to develop a usable dataset
+ 2. Partitioning of training data into training/testing subsets.
+ 3. Selection, training, and tuning of a ML model.
+ 4. Estimation of predictive results.
+ 5. Evaluation and visualization of performance. 
+
+## Set up R
+```{r, cache = T, warning=FALSE}
+library(caret)
+library(rpart)
+library(rpart.plot)
+library(randomForest) 
+library(corrplot)
+library(forestFloor)
+
+trainUrl <-"https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+testUrl <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+trainFile <- "./data/pml-training.csv"
+testFile  <- "./data/pml-testing.csv"
+if (!file.exists("./data")) {
+  dir.create("./data")
+}
+if (!file.exists(trainFile)) {
+download.file(trainUrl, destfile=trainFile, method="libcurl") 
+}
+if (!file.exists(testFile)) {
+download.file(testUrl, destfile=testFile, method="libcurl") 
+}
+```
+## Load Data
+```{r, cache = T}
+trainRaw <- read.csv("./data/pml-training.csv")
+testRaw <- read.csv("./data/pml-testing.csv")
+dim(trainRaw)
+dim(testRaw)
+```
+The training data set contains 19622 observations and 160 features. Testing contains 20 observations. We're trying to predict the value of the classe variable.
+
+## Data Preprocessing
+Because we have a lot of candidate features to use in our model, I won't invest the effort into imputing missing values. Instead, we'll just remove columns that have NA values. Make sure they're removed from both sets!
+```{r, cache = T}
+trainRaw <- trainRaw[, colSums(is.na(trainRaw)) == 0] 
+testRaw <- testRaw[, colSums(is.na(testRaw)) == 0] 
+```  
+Next, we'll drop non-numeric columns. This is not a sophisticated approach; if it was too blunt of an instrument, we could convert them to numeric classes. 
+```{r, cache = T}
+classe <- trainRaw$classe
+trainRemove <- grepl("^X|timestamp|window", names(trainRaw))
+trainRaw <- trainRaw[, !trainRemove]
+trainCleaned <- trainRaw[, sapply(trainRaw, is.numeric)]
+trainCleaned$classe <- classe
+testRemove <- grepl("^X|timestamp|window", names(testRaw))
+testRaw <- testRaw[, !testRemove]
+testCleaned <- testRaw[, sapply(testRaw, is.numeric)]
+```
+## Partition the cleaned data
+We partition the dataset into training/testing subsets. The new training subset is used to train our ML model, and the new testing data is used to evaluate the model's performance. 
+```{r, cache = T}
+set.seed(1) # use a static seed, in order to split the data in a replicable way when re-running this script
+inTrain <- createDataPartition(trainCleaned$classe, p=0.60, list=F)
+trainData <- trainCleaned[inTrain, ]
+testData <- trainCleaned[-inTrain, ]
+```
+
+## Model Development
+I'll fit a random forest using the caret wrapper package (and through it, the randomForest package). Reasons to use this model include:
+- feature selection is built-in (via greedy partitioning)
+- easily visualizable results
+
+```{r, cache = T}
+controlRf <- trainControl(method="cv", 3)
+modelRf <- train(classe ~ ., data=trainData, method="rf", trControl=controlRf, ntree=25)
+modelRf
+```
+Then, we evaluate the model's performance on our data set. 
+```{r, cache = T}
+predictRf <- predict(modelRf, testData)
+confusionMatrix(testData$classe, predictRf)
+```
+Calculate  out of sample error:
+```{r, cache = T}
+oos_error <- 1 - as.numeric(confusionMatrix(testData$classe, predictRf)$overall[1])
+oos_error
+```
+Estimated accuracy  is 99.04% 
+Estimated out-of-sample error is 0.9%.
+If we wanted to improve these results, there are a number of options.
+ * We could go back and tune the existing model by increasing our validation rounds.
+ * We could increase the number of number of trees the forest contains. The value I selected - 25 - is on the low end of usable, and was selected for speed of execution. 
+ * We could improve the algorithm by boosting
+ * We could compare the performance of an entirely different algorithm.
+ * We could go back to the very aggressive data preprocessing that was done, try to remove fewer columns, and improve the quantity of features available to the algorithm. 
+
+## Predictions from [original] test data set
+We apply the trained model to the original set of 20 test questions to generate predicted classe variables.  
+```{r, cache = T}
+result <- predict(modelRf, testCleaned[, -length(names(testCleaned))])
+result
+```  
+
+### Visualization - Confusion (correllation) Matrix
+The confusion matrix suggests (from the darker-colored nodes) that a high degree of the predictive value is in a relatively small number of features, which is well-suited to being selected through the random forest's growth algorithm.
+```{r, cache = T}
+corrPlot <- cor(trainData[, -length(names(trainData))])
+corrplot(corrPlot)
+```
+
+[End of assignment writeup.]

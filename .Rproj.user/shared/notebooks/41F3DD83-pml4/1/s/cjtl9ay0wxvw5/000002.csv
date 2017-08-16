@@ -1,0 +1,4 @@
+"0","set.seed(1) # use a static seed, in order to split the data in a replicable way when re-running this script"
+"0","inTrain <- createDataPartition(trainCleaned$classe, p=0.60, list=F)"
+"0","trainData <- trainCleaned[inTrain, ]"
+"0","testData <- trainCleaned[-inTrain, ]"

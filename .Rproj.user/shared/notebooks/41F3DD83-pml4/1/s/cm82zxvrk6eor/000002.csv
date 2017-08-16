@@ -1,0 +1,6 @@
+"0","oos_error <- 1 - as.numeric(confusionMatrix(testData$classe, predictRf)$overall[1])"
+"0","oos_error"
+"1","[1]"
+"1"," 0.009559011"
+"1","
+"

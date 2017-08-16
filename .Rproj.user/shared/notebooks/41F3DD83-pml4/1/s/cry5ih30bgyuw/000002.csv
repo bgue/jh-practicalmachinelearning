@@ -1,0 +1,2 @@
+"0","corrPlot <- cor(trainData[, -length(names(trainData))])"
+"0","corrplot(corrPlot)"
